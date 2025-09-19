@@ -18,6 +18,7 @@ from utils import (
     error_for_todo_title,
     find_list_by_id,
     find_todo_by_id,
+    mark_all_completed,
 )
 
 import werkzeug
@@ -121,6 +122,16 @@ def delete_todo(list_id, todo_id):
     delete_todo_by_id(todo_id, lst)
 
     flash("The todo has been deleted.", "success")
+    session.modified = True
+    return redirect(url_for('show_list', list_id=list_id))
+
+@app.route("/lists/<list_id>/complete_all", methods=["POST"])
+def mark_all_todos_completed(list_id):
+    lst = find_list_by_id(list_id, session['lists'])
+
+    mark_all_completed(lst)
+
+    flash("All todos have been marked completed.", "success")
     session.modified = True
     return redirect(url_for('show_list', list_id=list_id))
 

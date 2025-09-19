@@ -7,7 +7,7 @@
       <ul>
         <li>
           <form class="complete_all"
-                action="/lists/{{ lst.id }}/complete_all"
+                action="{{ url_for('mark_all_todos_completed', list_id=lst.id) }}"
                 method="post">
             <button class="check" type="submit">Complete All</button>
           </form>
