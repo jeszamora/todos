@@ -10,10 +10,14 @@ from flask import (
     url_for,
 )
 
+from pprint import pprint
+
 from utils import (
+    delete_todo_by_id,
     error_for_list_title,
     error_for_todo_title,
     find_list_by_id,
+    find_todo_by_id,
 )
 
 import werkzeug
@@ -88,22 +92,37 @@ def create_todo(list_id):
     session.modified = True
     return redirect(url_for('show_list', list_id=list_id))
 
+@app.route("/lists/<list_id>/todos/<todo_id>/toggle", methods=["POST"])
+def update_todo_status(list_id, todo_id):
+    lst = find_list_by_id(list_id, session['lists'])
+    if not lst:
+        raise werkzeug.exceptions.NotFound(descrition="List not found")
+    
+    todo = find_todo_by_id(todo_id, lst['todos'])
+    if not todo:
+        raise werkzeug.exceptions.NotFound(description="Todo not found")
+
+    todo['completed'] = (request.form['completed'] == 'True')
+
+    flash("The todo has been updated.", "success")
+    session.modified = True
+    return redirect(url_for('show_list', list_id=list_id))
+
+@app.route("/lists/<list_id>/todos/<todo_id>/delete", methods=["POST"])
+def delete_todo(list_id, todo_id):
+    lst = find_list_by_id(list_id, session['lists'])
+    if not lst:
+        raise werkzeug.exceptions.NotFound(description="List not found")
+    
+    todo = find_todo_by_id(todo_id, lst['todos'])
+    if not todo:
+        raise werkzeug.exceptions.NotFound(description="Todo not found")
+    
+    delete_todo_by_id(todo_id, lst)
+
+    flash("The todo has been deleted.", "success")
+    session.modified = True
+    return redirect(url_for('show_list', list_id=list_id))
+
 if __name__ == "__main__":
     app.run(debug=True, port=5003)
-
-'''
-
-input: The user enters text into the form
-output: A new todo is created and is added to the current todo list
-
-rules:
-- When the form is submitted, the screen should automatically redraw itself
-- If the new todo has a valid title, the new todo should not be marked as completed
-- Issue a flash success message after successfully creating a new todo
-# - Todo title is required and must have a max size of 100 characters, if not flash an error message
-# - Duplicate todo titles are permitted
-- The list of todo lists at /lists should show an updated count
-- if the requested todo list does not exist, code needs to issue a 404 status code
-
-
-'''
